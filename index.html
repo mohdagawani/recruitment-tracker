@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruitment Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 28px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+
+        .form-container, .list-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .candidate-list {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        .stage-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .stage-acceptance { background: #fef5e7; color: #d69e2e; }
+        .stage-onboarding { background: #e6fffa; color: #38b2ac; }
+        .stage-contract { background: #ebf8ff; color: #4299e1; }
+        .stage-medical { background: #faf5ff; color: #9f7aea; }
+        .stage-completed { background: #f0fff4; color: #48bb78; }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-buttons .btn {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-modal {
+            font-size: 24px;
+            cursor: pointer;
+            color: #718096;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .search-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-filter input, .search-filter select {
+            flex: 1;
+        }
+
+        @media (max-width: 968px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 Recruitment Tracker</h1>
+            <button class="btn btn-primary" onclick="showAddModal()">+ Add Candidate</button>
+        </header>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number" id="totalCandidates">0</div>
+                <div class="stat-label">Total Candidates</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="acceptanceCount">0</div>
+                <div class="stat-label">Acceptance Stage</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="onboardingCount">0</div>
+                <div class="stat-label">Onboarding</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedCount">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="form-container">
+                <h2 class="section-title">Quick Add Candidate</h2>
+                <form id="quickForm" onsubmit="handleQuickAdd(event)">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Candidate Name *</label>
+                        <input type="text" id="quickName" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Position *</label>
+                        <input type="text" id="quickPosition" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Department</label>
+                        <select id="quickDepartment">
+                            <option value="">Select Department</option>
+                            <option value="HR">HR</option>
+                            <option value="IT">IT</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Operations">Operations</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Current Stage</label>
+                        <select id="quickStage">
+                            <option value="Acceptance">Acceptance</option>
+                            <option value="Onboarding">Onboarding</option>
+                            <option value="Contract Update">Contract Update</option>
+                            <option value="Medical Insurance">Medical Insurance</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Add Candidate</button>
+                </form>
+            </div>
+
+            <div class="list-container">
+                <h2 class="section-title">Candidates</h2>
+                <div class="search-filter">
+                    <input type="text" id="searchInput" placeholder="Search by name or position..." onkeyup="filterCandidates()">
+                    <select id="filterStage" onchange="filterCandidates()">
+                        <option value="">All Stages</option>
+                        <option value="Acceptance">Acceptance</option>
+                        <option value="Onboarding">Onboarding</option>
+                        <option value="Contract Update">Contract Update</option>
+                        <option value="Medical Insurance">Medical Insurance</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div id="candidatesList" class="candidate-list">
+                    <div class="loading">Loading candidates...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Full Form -->
+    <div id="candidateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Candidate</h2>
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="alertBox" class="alert"></div>
+            <form id="fullForm" onsubmit="handleFormSubmit(event)">
+                <input type="hidden" id="candidateId">
+                
+                <div class="form-section">
+                    <h3 class="section-title">Basic Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Candidate Name *</label>
+                            <input type="text" id="candidateName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Position *</label>
+                            <input type="text" id="position" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Department</label>
+                            <select id="department">
+                                <option value="">Select Department</option>
+                                <option value="HR">HR</option>
+                                <option value="IT">IT</option>
+                                <option value="Finance">Finance</option>
+                                <option value="Sales">Sales</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Operations">Operations</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Work Location</label>
+                            <select id="workLocation">
+                                <option value="">Select Location</option>
+                                <option value="Office A">Office A</option>
+                                <option value="Office B">Office B</option>
+                                <option value="Remote">Remote</option>
+                                <option value="Hybrid">Hybrid</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Line Manager</label>
+                            <input type="text" id="lineManager">
+                        </div>
+                        <div class="form-group">
+                            <label>Current Stage *</label>
+                            <select id="currentStage" required>
+                                <option value="Acceptance">Acceptance</option>
+                                <option value="Onboarding">Onboarding</option>
+                                <option value="Contract Update">Contract Update</option>
+                                <option value="Medical Insurance">Medical Insurance</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">Acceptance Stage</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Grade</label>
+                            <select id="grade">
+                                <option value="">Select Grade</option>
+                                <option value="G1">G1</option>
+                                <option value="G2">G2</option>
+                                <option value="G3">G3</option>
+                                <option value="G4">G4</option>
+                                <option value="G5">G5</option>
+                                <option value="G6">G6</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Level</label>
+                            <select id="level">
+                                <option value="">Select Level</option>
+                                <option value="Junior">Junior</option>
+                                <option value="Mid">Mid</option>
+                                <option value="Senior">Senior</option>
+                                <option value="Lead">Lead</option>
+                                <option value="Manager">Manager</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Contact Type</label>
+                            <select id="contactType">
+                                <option value="">Select Type</option>
+                                <option value="Full-time">Full-time</option>
+                                <option value="Part-time">Part-time</option>
+                                <option value="Contract">Contract</option>
+                                <option value="Intern">Intern</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Salary (USD)</label>
+                            <input type="number" id="salaryUSD" step="1000">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Contract Start Date</label>
+                            <input type="date" id="contractStartDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Contract End Date</label>
+                            <input type="date" id="contractEndDate">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Joining Date</label>
+                            <input type="date" id="joiningDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Employment History</label>
+                            <textarea id="employmentHistory"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">Onboarding Stage</h3>
+                    <div class="form-row">
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="documentsShared">
+                            <label for="documentsShared">Documents Shared</label>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="logisticSetup">
+                            <label for="logisticSetup">Logistic Setup</label>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="officeTour">
+                            <label for="officeTour">Office Tour</label>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="welcomeEmail">
+                            <label for="welcomeEmail">Welcome Email Sent</label>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="inductionEmail">
+                            <label for="inductionEmail">Induction Email Sent</label>
+                        </div>
+                        <div class="form-group">
+                            <label>Access Card Type</label>
+                            <select id="accessCardType">
+                                <option value="">Select Type</option>
+                                <option value="Temporary">Temporary</option>
+                                <option value="Permanent">Permanent</option>
+                                <option value="Visitor">Visitor</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Access Card Status</label>
+                            <select id="accessCardStatus">
+                                <option value="">Select Status</option>
+                                <option value="Not Ordered">Not Ordered</option>
+                                <option value="Ordered">Ordered</option>
+                                <option value="Ready">Ready</option>
+                                <option value="Delivered">Delivered</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">Contract & Medical</h3>
+                    <div class="form-row">
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="compassUpdate">
+                            <label for="compassUpdate">Compass Update</label>
+                        </div>
+                        <div class="form-group">
+                            <label>Contract Status</label>
+                            <select id="contractStatus">
+                                <option value="">Select Status</option>
+                                <option value="Draft">Draft</option>
+                                <option value="Sent">Sent</option>
+                                <option value="Signed">Signed</option>
+                                <option value="Archived">Archived</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Social Security</label>
+                            <select id="socialSecurity">
+                                <option value="">Select Status</option>
+                                <option value="Not Applied">Not Applied</option>
+                                <option value="Applied">Applied</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Has Dependence</label>
+                            <select id="hasDependence" onchange="toggleDependenceField()">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row" id="dependenceField" style="display: none;">
+                        <div class="form-group">
+                            <label>No. of Dependence</label>
+                            <input type="number" id="noOfDependence" min="0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Medical Insurance Status</label>
+                            <select id="medicalInsuranceStatus">
+                                <option value="">Select Status</option>
+                                <option value="Not Enrolled">Not Enrolled</option>
+                                <option value="Enrolled">Enrolled</option>
+                                <option value="Active">Active</option>
+                                <option value="Pending">Pending</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">Additional Information</h3>
+                    <div class="form-group full-width">
+                        <label>Remarks</label>
+                        <textarea id="remarks" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Candidate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // IMPORTANT: Replace with your Google Apps Script Web App URL
+        const SCRIPT_URL = https://script.google.com/macros/s/AKfycby5ds3JXWXQb6BMBI9ORE5FfOFilDbnKOa14LH5v4CCnhv9_DNq1ukj7JM4LbP_dGCSqw/exec;
+        
+        let candidates = [];
+        let editingId = null;
+
+        // Load candidates on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCandidates();
+        });
+
+        function toggleDependenceField() {
+            const hasDependence = document.getElementById('hasDependence').value;
+            const dependenceField = document.getElementById('dependenceField');
+            dependenceField.style.display = hasDependence === 'Yes' ? 'grid' : 'none';
+        }
+
+        async function loadCandidates() {
+            try {
+                const response = await fetch(SCRIPT_URL + '?action=getCandidates');
+                const data = await response.json();
+                
+                if (data.success) {
+                    candidates = data.candidates;
+                    displayCandidates(candidates);
+                    updateStats();
+                } else {
+                    showError('Failed to load candidates');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error connecting to server. Please check your internet connection.');
+            }
+        }
+
+        function displayCandidates(candidatesToDisplay) {
+            const container = document.getElementById('candidatesList');
+            
+            if (candidatesToDisplay.length === 0) {
+                container.innerHTML = '<div class="loading">No candidates found</div>';
+                return;
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Position</th>
+                            <th>Department</th>
+                            <th>Stage</th>
+                            <th>Joining Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            candidatesToDisplay.forEach(candidate => {
+                const stageClass = 'stage-' + candidate.CurrentStage.toLowerCase().replace(' ', '-');
+                html += `
+                    <tr>
+                        <td><strong>${candidate.CandidateName}</strong></td>
+                        <td>${candidate.Position}</td>
+                        <td>${candidate.Department || '-'}</td>
+                        <td><span class="stage-badge ${stageClass}">${candidate.CurrentStage}</span></td>
+                        <td>${candidate.JoiningDate ? new Date(candidate.JoiningDate).toLocaleDateString() : '-'}</td>
+                        <td class="action-buttons">
+                            <button class="btn btn-primary" onclick="editCandidate('${candidate.CandidateID}')">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteCandidate('${candidate.CandidateID}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function updateStats() {
+            document.getElementById('totalCandidates').textContent = candidates.length;
+            document.getElementById('acceptanceCount').textContent = candidates.filter(c => c.CurrentStage === 'Acceptance').length;
+            document.getElementById('onboardingCount').textContent = candidates.filter(c => c.CurrentStage === 'Onboarding').length;
+            document.getElementById('completedCount').textContent = candidates.filter(c => c.CurrentStage === 'Completed').length;
+        }
+
+        function filterCandidates() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const stageFilter = document.getElementById('filterStage').value;
+
+            const filtered = candidates.filter(candidate => {
+                const matchesSearch = !searchTerm || 
+                    candidate.CandidateName.toLowerCase().includes(searchTerm) ||
+                    candidate.Position.toLowerCase().includes(searchTerm);
+                const matchesStage = !stageFilter || candidate.CurrentStage === stageFilter;
+                return matchesSearch && matchesStage;
+            });
+
+            displayCandidates(filtered);
+        }
+
+        function showAddModal() {
+            editingId = null;
+            document.getElementById('modalTitle').textContent = 'Add Candidate';
+            document.getElementById('fullForm').reset();
+            document.getElementById('candidateModal').style.display = 'flex';
+            document.getElementById('alertBox').style.display = 'none';
+        }
+
+        function closeModal() {
+            document.getElementById('candidateModal').style.display = 'none';
+        }
+
+        async function editCandidate(id) {
+            const candidate = candidates.find(c => c.CandidateID === id);
+            if (!candidate) return;
+
+            editingId = id;
+            document.getElementById('modalTitle').textContent = 'Edit Candidate';
+            
+            // Fill form fields
+            document.getElementById('candidateName').value = candidate.CandidateName || '';
+            document.getElementById('position').value = candidate.Position || '';
+            document.getElementById('department').value = candidate.Department || '';
+            document.getElementById('workLocation').value = candidate.WorkLocation || '';
+            document.getElementById('lineManager').value = candidate.LineManager || '';
+            document.getElementById('currentStage').value = candidate.CurrentStage || 'Acceptance';
+            document.getElementById('grade').value = candidate.Grade || '';
+            document.getElementById('level').value = candidate.Level || '';
+            document.getElementById('contactType').value = candidate.ContactType || '';
+            document.getElementById('salaryUSD').value = candidate.SalaryUSD || '';
+            document.getElementById('contractStartDate').value = candidate.ContractStartDate ? new Date(candidate.ContractStartDate).toISOString().split('T')[0] : '';
+            document.getElementById('contractEndDate').value = candidate.ContractEndDate ? new Date(candidate.ContractEndDate).toISOString().split('T')[0] : '';
+            document.getElementById('joiningDate').value = candidate.JoiningDate ? new Date(candidate.JoiningDate).toISOString().split('T')[0] : '';
+            document.getElementById('employmentHistory').value = candidate.EmploymentHistory || '';
+            document.getElementById('documentsShared').checked = candidate.DocumentsShared === true;
+            document.getElementById('logisticSetup').checked = candidate.LogisticSetup === true;
+            document.getElementById('officeTour').checked = candidate.OfficeTour === true;
+            document.getElementById('welcomeEmail').checked = candidate.WelcomeEmail === true;
+            document.getElementById('inductionEmail').checked = candidate.InductionEmail === true;
+            document.getElementById('accessCardType').value = candidate.AccessCardType || '';
+            document.getElementById('accessCardStatus').value = candidate.AccessCardStatus || '';
+            document.getElementById('compassUpdate').checked = candidate.CompassUpdate === true;
+            document.getElementById('contractStatus').value = candidate.ContractStatus || '';
+            document.getElementById('socialSecurity').value = candidate.SocialSecurity || '';
+            document.getElementById('hasDependence').value = candidate.HasDependence || 'No';
+            document.getElementById('noOfDependence').value = candidate.NoOfDependence || '';
+            document.getElementById('medicalInsuranceStatus').value = candidate.MedicalInsuranceStatus || '';
+            document.getElementById('remarks').value = candidate.Remarks || '';
+
+            toggleDependenceField();
+            document.getElementById('candidateModal').style.display = 'flex';
+            document.getElementById('alertBox').style.display = 'none';
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const formData = {
+                action: editingId ? 'updateCandidate' : 'addCandidate',
+                CandidateID: editingId,
+                CandidateName: document.getElementById('candidateName').value,
+                Position: document.getElementById('position').value,
+                Department: document.getElementById('department').value,
+                WorkLocation: document.getElementById('workLocation').value,
+                LineManager: document.getElementById('lineManager').value,
+                CurrentStage: document.getElementById('currentStage').value,
+                Grade: document.getElementById('grade').value,
+                Level: document.getElementById('level').value,
+                ContactType: document.getElementById('contactType').value,
+                SalaryUSD: document.getElementById('salaryUSD').value,
+                ContractStartDate: document.getElementById('contractStartDate').value,
+                ContractEndDate: document.getElementById('contractEndDate').value,
+                JoiningDate: document.getElementById('joiningDate').value,
+                EmploymentHistory: document.getElementById('employmentHistory').value,
+                DocumentsShared: document.getElementById('documentsShared').checked,
+                LogisticSetup: document.getElementById('logisticSetup').checked,
+                OfficeTour: document.getElementById('officeTour').checked,
+                WelcomeEmail: document.getElementById('welcomeEmail').checked,
+                InductionEmail: document.getElementById('inductionEmail').checked,
+                AccessCardType: document.getElementById('accessCardType').value,
+                AccessCardStatus: document.getElementById('accessCardStatus').value,
+                CompassUpdate: document.getElementById('compassUpdate').checked,
+                ContractStatus: document.getElementById('contractStatus').value,
+                SocialSecurity: document.getElementById('socialSecurity').value,
+                HasDependence: document.getElementById('hasDependence').value,
+                NoOfDependence: document.getElementById('noOfDependence').value,
+                MedicalInsuranceStatus: document.getElementById('medicalInsuranceStatus').value,
+                Remarks: document.getElementById('remarks').value
+            };
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(formData)
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Candidate saved successfully!', 'success');
+                    closeModal();
+                    await loadCandidates();
+                } else {
+                    showAlert('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showAlert('Error saving candidate: ' + error.message, 'error');
+            }
+        }
+
+        async function handleQuickAdd(e) {
+            e.preventDefault();
+            
+            const formData = {
+                action: 'addCandidate',
+                CandidateName: document.getElementById('quickName').value,
+                Position: document.getElementById('quickPosition').value,
+                Department: document.getElementById('quickDepartment').value,
+                CurrentStage: document.getElementById('quickStage').value
+            };
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(formData)
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('quickForm').reset();
+                    showAlert('Candidate added successfully!', 'success');
+                    await loadCandidates();
+                } else {
+                    showAlert('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showAlert('Error adding candidate: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteCandidate(id) {
+            if (!confirm('Are you sure you want to delete this candidate?')) return;
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'deleteCandidate',
+                        id: id
+                    })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Candidate deleted successfully!', 'success');
+                    await loadCandidates();
+                } else {
+                    showAlert('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showAlert('Error deleting candidate: ' + error.message, 'error');
+            }
+        }
+
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.textContent = message;
+            alertBox.className = 'alert alert-' + type;
+            alertBox.style.display = 'block';
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+
+        function showError(message) {
+            const container = document.getElementById('candidatesList');
+            container.innerHTML = `<div class="loading" style="color: #f56565;">${message}</div>`;
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('candidateModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
